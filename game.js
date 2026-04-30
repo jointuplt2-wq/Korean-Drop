@@ -6,6 +6,7 @@ const SCREENS = {
   RESULT: 'RESULT',
   WORDLIST: 'WORDLIST',
   SETTINGS: 'SETTINGS',
+  STATS: 'STATS',
 };
 
 // Design Ref: §4.2 Level Config — speed 40→140 px/s across 10 levels
@@ -44,6 +45,7 @@ const state = {
   victoryFlag: false,
   stats: { attempted: 0, correct: 0, startTime: null },
   settings: { volume: 0.7, lang: 'ko', bgm: true, startLevel: 1 },
+  playerName: 'Player',
   spawn: { lastTime: 0, interval: 2000 },
   usedWords: new Set(),
   stars: [],
@@ -54,6 +56,7 @@ let menuHover      = null;
 let resultHover    = null;
 let settingsHover  = null;
 let wordlistHover  = null;
+let statsHover     = null;
 let volDragging    = false;
 
 function getWordPool() {
@@ -138,6 +141,64 @@ function stopBGM() {
   if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; }
 }
 
+// ── localStorage 기록 ─────────────────────────────────────────────
+function loadRecords() {
+  try { return JSON.parse(localStorage.getItem('kd_records') || '[]'); }
+  catch { return []; }
+}
+
+function buildRecord() {
+  const elapsed = state.stats.startTime ? (Date.now() - state.stats.startTime) / 60000 : 0.01;
+  const mins    = Math.max(elapsed, 0.01);
+  const wpm     = Math.round(state.stats.correct / mins);
+  const acc     = state.stats.attempted > 0
+    ? Math.round(state.stats.correct / state.stats.attempted * 100) : 0;
+  return {
+    name: state.playerName,
+    score: state.score,
+    level: state.level,
+    acc, wpm,
+    maxCombo: state.maxCombo,
+    victory: state.victoryFlag,
+    date: new Date().toISOString().slice(0, 10),
+  };
+}
+
+function saveRecord(rec) {
+  const records = loadRecords();
+  records.push(rec);
+  if (records.length > 200) records.splice(0, records.length - 200);
+  localStorage.setItem('kd_records', JSON.stringify(records));
+}
+
+// ── 이름 팝업 ─────────────────────────────────────────────────────
+const namePopup = document.getElementById('name-popup');
+const nameInput = document.getElementById('name-input');
+const nameOkBtn = document.getElementById('name-ok');
+
+function showNamePopup() {
+  nameInput.value = state.playerName === 'Player' ? '' : state.playerName;
+  namePopup.classList.add('active');
+  setTimeout(() => nameInput.focus(), 30);
+}
+
+function hideNamePopup() {
+  namePopup.classList.remove('active');
+}
+
+function confirmName() {
+  const n = nameInput.value.trim();
+  state.playerName = n || 'Player';
+  hideNamePopup();
+  startGame();
+}
+
+nameOkBtn.addEventListener('click', confirmName);
+nameInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.stopPropagation(); confirmName(); }
+  if (e.key === 'Escape') hideNamePopup();
+});
+
 // Screen transitions
 function gotoMenu() {
   stopBGM();
@@ -177,6 +238,7 @@ function triggerLevelClear() {
   if (state.level >= 10) {
     state.victoryFlag = true;
     stopBGM();
+    saveRecord(buildRecord());
     setTimeout(() => { state.screen = SCREENS.RESULT; }, 2500);
   } else {
     setTimeout(() => {
@@ -198,6 +260,7 @@ function triggerGameOver() {
   inputArea.style.display = 'none';
   stopBGM();
   playSound('gameover');
+  saveRecord(buildRecord());
 }
 
 // Word spawning — Design Ref: §5.2
@@ -303,10 +366,11 @@ function drawMenu() {
   ctx.fillText(t('한글 낙하 타자 연습 게임', 'Korean Typing Drop Game'), 400, 168);
 
   const items = [
-    { id: 'start',    label: '게임 시작',  y: 252 },
-    { id: 'wordlist', label: '단어장 보기', y: 318 },
-    { id: 'settings', label: '설    정',   y: 384 },
-    { id: 'quit',     label: '종    료',   y: 450 },
+    { id: 'start',    label: '게임 시작',  y: 230 },
+    { id: 'stats',    label: '통    계',   y: 286 },
+    { id: 'wordlist', label: '단어장 보기', y: 342 },
+    { id: 'settings', label: '설    정',   y: 398 },
+    { id: 'quit',     label: '종    료',   y: 454 },
   ];
   items.forEach(item => {
     const h = menuHover === item.id;
@@ -320,7 +384,7 @@ function drawMenu() {
   ctx.shadowBlur  = 0;
   ctx.fillStyle   = 'rgba(255,255,255,0.3)';
   ctx.font        = `14px ${FONT}`;
-  ctx.fillText('Enter 키로 바로 시작', 400, 572);
+  ctx.fillText('Enter 키로 바로 시작', 400, 534);
   ctx.restore();
 }
 
@@ -667,6 +731,135 @@ function drawSettings() {
   ctx.restore();
 }
 
+function drawStats() {
+  drawBg();
+  ctx.save();
+
+  const records    = loadRecords();
+  const today      = new Date().toISOString().slice(0, 10);
+  const todayRecs  = records.filter(r => r.date === today);
+
+  function calcStats(recs) {
+    if (!recs.length) return { games: 0, bestScore: 0, avgWpm: 0, avgAcc: 0, bestCombo: 0 };
+    return {
+      games:     recs.length,
+      bestScore: Math.max(...recs.map(r => r.score)),
+      avgWpm:    Math.round(recs.reduce((s, r) => s + r.wpm, 0) / recs.length),
+      avgAcc:    Math.round(recs.reduce((s, r) => s + r.acc, 0) / recs.length),
+      bestCombo: Math.max(...recs.map(r => r.maxCombo)),
+    };
+  }
+
+  const ts   = calcStats(todayRecs);
+  const as_  = calcStats(records);
+  const top10 = [...records].sort((a, b) => b.score - a.score).slice(0, 10);
+
+  ctx.textAlign = 'center';
+
+  // 제목
+  ctx.fillStyle = '#FFD700'; ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 14;
+  ctx.font = `bold 28px ${FONT}`;
+  ctx.fillText('통계', 400, 38);
+  ctx.shadowBlur = 0;
+
+  // 구분선
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(20, 50); ctx.lineTo(780, 50); ctx.stroke();
+
+  // 칼럼 헤더
+  ctx.font = `bold 14px ${FONT}`;
+  ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fillText('항목', 135, 70);
+  ctx.fillStyle = '#87CEEB';                ctx.fillText('오늘',  310, 70);
+  ctx.fillStyle = '#FFD700';                ctx.fillText('전체',  530, 70);
+
+  const statRows = [
+    { label: '게임 수',    tv: ts.games,     av: as_.games,     sfx: '판' },
+    { label: '최고 점수',  tv: ts.bestScore, av: as_.bestScore, sfx: '점' },
+    { label: '평균 WPM',   tv: ts.avgWpm,    av: as_.avgWpm,    sfx: '' },
+    { label: '평균 정확도', tv: ts.avgAcc,    av: as_.avgAcc,    sfx: '%' },
+    { label: '최고 콤보',  tv: ts.bestCombo, av: as_.bestCombo, sfx: '연속' },
+  ];
+
+  statRows.forEach((row, i) => {
+    const y = 96 + i * 22;
+    const todayStr = ts.games === 0  ? '-' : `${row.tv}${row.sfx}`;
+    const allStr   = as_.games === 0 ? '-' : `${row.av}${row.sfx}`;
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,0.50)'; ctx.font = `13px ${FONT}`;
+    ctx.fillText(row.label, 135, y);
+    ctx.fillStyle = '#87CEEB'; ctx.font = `bold 13px ${FONT}`;
+    ctx.fillText(todayStr, 310, y);
+    ctx.fillStyle = '#FFD700';
+    ctx.fillText(allStr, 530, y);
+  });
+
+  // 세로 구분선
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.beginPath(); ctx.moveTo(420, 58); ctx.lineTo(420, 200); ctx.stroke();
+
+  // 가로 구분선
+  ctx.beginPath(); ctx.moveTo(20, 206); ctx.lineTo(780, 206); ctx.stroke();
+
+  // TOP 10 제목
+  ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 8;
+  ctx.fillStyle = '#FFD700'; ctx.font = `bold 14px ${FONT}`;
+  ctx.fillText('🏆  최고 점수 TOP 10', 400, 222);
+  ctx.shadowBlur = 0;
+
+  // 테이블 헤더
+  const cols = [
+    { x: 42,  label: '순위' },
+    { x: 105, label: '이름' },
+    { x: 255, label: '점수' },
+    { x: 340, label: '레벨' },
+    { x: 410, label: 'WPM' },
+    { x: 480, label: '정확도' },
+    { x: 570, label: '날짜' },
+    { x: 670, label: '결과' },
+  ];
+  ctx.fillStyle = 'rgba(255,255,255,0.40)'; ctx.font = `11px ${FONT}`;
+  cols.forEach(c => { ctx.textAlign = 'left'; ctx.fillText(c.label, c.x, 240); });
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+  ctx.beginPath(); ctx.moveTo(20, 246); ctx.lineTo(780, 246); ctx.stroke();
+
+  if (top10.length === 0) {
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,0.32)'; ctx.font = `15px ${FONT}`;
+    ctx.fillText('기록이 없습니다. 게임을 시작해보세요!', 400, 370);
+  } else {
+    top10.forEach((rec, i) => {
+      const y = 264 + i * 25;
+      // 오늘 기록 하이라이트
+      const isToday = rec.date === today;
+      ctx.fillStyle = i === 0 ? '#FFD700' : i < 3 ? '#90EE90' : isToday ? '#ADD8E6' : 'rgba(255,255,255,0.78)';
+      ctx.font = `${i < 3 ? 'bold ' : ''}12px ${FONT}`;
+      ctx.textAlign = 'left';
+      cols.forEach(c => ctx.fillText('', c.x, y)); // clear
+      ctx.fillText(`${i + 1}.`,                42,  y);
+      ctx.fillText(rec.name.slice(0, 8),       105, y);
+      ctx.fillText(rec.score.toLocaleString(), 255, y);
+      ctx.fillText(rec.level,                  340, y);
+      ctx.fillText(rec.wpm,                    410, y);
+      ctx.fillText(`${rec.acc}%`,              480, y);
+      ctx.fillText(rec.date.slice(5),          570, y);
+      ctx.fillText(rec.victory ? '🏆' : '💀', 670, y);
+    });
+  }
+
+  // 돌아가기
+  const bh = statsHover === 'back';
+  ctx.textAlign = 'center';
+  ctx.fillStyle   = bh ? '#FFD700' : 'rgba(255,255,255,0.65)';
+  ctx.shadowColor = bh ? '#FFD700' : 'transparent'; ctx.shadowBlur = bh ? 10 : 0;
+  ctx.font = `${bh ? 'bold ' : ''}16px ${FONT}`;
+  ctx.fillText('← 돌아가기', 400, 566);
+  ctx.shadowBlur = 0;
+
+  ctx.restore();
+}
+
 // Input event handlers — Design Ref: §5.3 IME composition handling
 wordInput.addEventListener('compositionstart', () => {
   state.isComposing = true;
@@ -698,10 +891,11 @@ wordInput.addEventListener('keydown', e => {
 
 // Canvas mouse interactions
 const MENU_ITEMS = [
-  { id: 'start',    y: 252 },
-  { id: 'wordlist', y: 318 },
-  { id: 'settings', y: 384 },
-  { id: 'quit',     y: 450 },
+  { id: 'start',    y: 230 },
+  { id: 'stats',    y: 286 },
+  { id: 'wordlist', y: 342 },
+  { id: 'settings', y: 398 },
+  { id: 'quit',     y: 454 },
 ];
 const RESULT_BTNS = [
   { id: 'restart', x: 280 },
@@ -764,6 +958,9 @@ canvas.addEventListener('mousemove', e => {
     ];
     wordlistHover = WORDLIST_HITS.find(b => Math.abs(mx - b.cx) < b.dx && Math.abs(my - b.cy) < 22)?.id ?? null;
     canvas.style.cursor = wordlistHover ? 'pointer' : 'default';
+  } else if (state.screen === SCREENS.STATS) {
+    statsHover = (Math.abs(mx - 400) < 110 && Math.abs(my - 566) < 22) ? 'back' : null;
+    canvas.style.cursor = statsHover ? 'pointer' : 'default';
   }
 });
 
@@ -777,7 +974,8 @@ canvas.addEventListener('click', e => {
   if (state.screen === SCREENS.MENU) {
     const hit = MENU_ITEMS.find(b => Math.abs(my - b.y) < 22 && Math.abs(mx - 400) < 160);
     if (!hit) return;
-    if (hit.id === 'start')    startGame();
+    if (hit.id === 'start')    showNamePopup();
+    if (hit.id === 'stats')    { state.screen = SCREENS.STATS; statsHover = null; }
     if (hit.id === 'wordlist') state.screen = SCREENS.WORDLIST;
     if (hit.id === 'settings') state.screen = SCREENS.SETTINGS;
     if (hit.id === 'quit') {
@@ -814,11 +1012,15 @@ canvas.addEventListener('click', e => {
     if (Math.abs(mx - 730) < 52 && Math.abs(my - 34) < 22) state.settings.lang = 'en';
     if (Math.abs(mx - 400) < 110 && Math.abs(my - 562) < 22) gotoMenu();
   }
+
+  if (state.screen === SCREENS.STATS) {
+    if (Math.abs(mx - 400) < 110 && Math.abs(my - 566) < 22) gotoMenu();
+  }
 });
 
 // Global keyboard shortcuts
 document.addEventListener('keydown', e => {
-  if (state.screen === SCREENS.MENU && e.key === 'Enter') startGame();
+  if (state.screen === SCREENS.MENU && e.key === 'Enter') showNamePopup();
 
   if (state.screen === SCREENS.RESULT) {
     if (e.key === 'Enter') startGame();
@@ -826,6 +1028,7 @@ document.addEventListener('keydown', e => {
   }
 
   if (state.screen === SCREENS.WORDLIST && e.key === 'Escape') gotoMenu();
+  if (state.screen === SCREENS.STATS    && e.key === 'Escape') gotoMenu();
 
   if (state.screen === SCREENS.SETTINGS) {
     if (e.key === 'Escape') gotoMenu();
@@ -853,6 +1056,7 @@ function loop(ts) {
     case SCREENS.RESULT:      drawResult(); break;
     case SCREENS.WORDLIST:    drawWordList(); break;
     case SCREENS.SETTINGS:    drawSettings(); break;
+    case SCREENS.STATS:       drawStats();    break;
   }
 
   requestAnimationFrame(loop);

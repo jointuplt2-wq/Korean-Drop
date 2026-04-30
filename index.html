@@ -53,6 +53,72 @@
       font-size: 14px;
       letter-spacing: 0;
     }
+    /* ── 이름 입력 팝업 ── */
+    #name-popup {
+      display: none;
+      position: absolute;
+      top: 0; left: 0;
+      width: 800px; height: 600px;
+      background: rgba(0, 0, 0, 0.72);
+      z-index: 20;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    #name-popup.active { display: flex; }
+    #name-card {
+      background: rgba(7, 7, 30, 0.97);
+      border: 1.5px solid rgba(255, 215, 0, 0.45);
+      border-radius: 16px;
+      padding: 40px 56px 36px;
+      text-align: center;
+      box-shadow: 0 0 48px rgba(255, 215, 0, 0.14);
+      min-width: 320px;
+    }
+    #name-card h2 {
+      font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'NanumGothic', sans-serif;
+      color: #FFD700;
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+    #name-card p {
+      font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'NanumGothic', sans-serif;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 13px;
+      margin-bottom: 22px;
+    }
+    #name-input {
+      display: block;
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 20px;
+      font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'NanumGothic', sans-serif;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1.5px solid rgba(255, 215, 0, 0.38);
+      border-radius: 8px;
+      color: #fff;
+      outline: none;
+      text-align: center;
+      caret-color: #FFD700;
+      margin-bottom: 18px;
+      letter-spacing: 2px;
+    }
+    #name-input:focus { border-color: #FFD700; box-shadow: 0 0 14px rgba(255, 215, 0, 0.28); }
+    #name-ok {
+      width: 100%;
+      padding: 11px;
+      font-size: 16px;
+      font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'NanumGothic', sans-serif;
+      background: #FFD700;
+      color: #1a1a1a;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: background 0.15s;
+    }
+    #name-ok:hover { background: #FFE44D; }
   </style>
 </head>
 <body>
@@ -68,6 +134,21 @@
         autocapitalize="off"
         spellcheck="false"
       >
+    </div>
+    <div id="name-popup">
+      <div id="name-card">
+        <h2>플레이어 이름 입력</h2>
+        <p>이름을 입력하지 않으면 'Player'로 저장됩니다</p>
+        <input
+          type="text"
+          id="name-input"
+          maxlength="12"
+          placeholder="이름 (최대 12자)"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <button id="name-ok">시작하기 ▶</button>
+      </div>
     </div>
   </div>
   <script src="words.js"></script>
