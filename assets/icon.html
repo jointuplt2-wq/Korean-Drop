@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>* { margin:0; padding:0; } html,body { width:100vw; height:100vh; overflow:hidden; background:transparent; }</style>
+</head>
+<body>
+<canvas id="c" style="display:block"></canvas>
+<script>
+(function () {
+  const canvas = document.getElementById('c');
+  const S = Math.min(window.innerWidth, window.innerHeight);
+  canvas.width = S; canvas.height = S;
+  const ctx = canvas.getContext('2d');
+  const sc = S / 512;
+
+  // Background rounded rect
+  ctx.beginPath();
+  ctx.roundRect(0, 0, S, S, 88 * sc);
+  const bg = ctx.createLinearGradient(0, 0, 0, S);
+  bg.addColorStop(0, '#07071e'); bg.addColorStop(1, '#10103a');
+  ctx.fillStyle = bg; ctx.fill();
+
+  // Ambient glow
+  const ag = ctx.createRadialGradient(S/2, S*0.44, 0, S/2, S*0.44, S*0.38);
+  ag.addColorStop(0, 'rgba(255,215,0,0.18)'); ag.addColorStop(1, 'rgba(255,215,0,0)');
+  ctx.save(); ctx.beginPath(); ctx.roundRect(0, 0, S, S, 88 * sc);
+  ctx.clip(); ctx.fillStyle = ag; ctx.fillRect(0, 0, S, S); ctx.restore();
+
+  // Stars
+  [[72,78,3,0.70],[182,44,2,0.55],[398,66,2.5,0.60],[454,156,2,0.40],
+   [86,196,2,0.38],[444,272,2.5,0.50],[98,374,1.5,0.30],[424,412,2,0.35],
+   [312,92,1.5,0.42],[340,430,1.5,0.28]
+  ].forEach(([x,y,r,a]) => {
+    ctx.beginPath(); ctx.arc(x*sc, y*sc, r*sc, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fill();
+  });
+
+  // Drop trail
+  ctx.fillStyle = 'rgba(255,215,0,0.38)';
+  ctx.beginPath(); ctx.roundRect(249*sc, 356*sc, 4*sc, 74*sc, 2*sc); ctx.fill();
+  ctx.fillStyle = 'rgba(255,215,0,0.20)';
+  ctx.beginPath(); ctx.roundRect(250*sc, 322*sc, 3*sc, 34*sc, 2*sc); ctx.fill();
+
+  // Character — glow pass
+  const fs = Math.round(272 * sc);
+  const font = `${fs}px 'Malgun Gothic','Apple SD Gothic Neo','NanumGothic',sans-serif`;
+  ctx.font = font; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.shadowColor = '#FFD700'; ctx.shadowBlur = Math.max(16, 28 * sc);
+  ctx.fillStyle = '#FFD700'; ctx.fillText('가', S/2, 348*sc);
+  ctx.shadowBlur = 0; ctx.fillText('가', S/2, 348*sc);
+
+  // Splash
+  ctx.beginPath(); ctx.ellipse(S/2, 452*sc, 48*sc, 9*sc, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,215,0,0.28)'; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(S/2, 452*sc, 28*sc, 5.5*sc, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,215,0,0.46)'; ctx.fill();
+})();
+</script>
+</body>
+</html>

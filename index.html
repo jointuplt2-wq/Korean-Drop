@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Korean Drop</title>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <meta property="og:title" content="Korean Drop">
+  <meta property="og:description" content="하늘에서 떨어지는 낱말을 타이핑하여 격추하는 한글 낙하 타자 연습 게임">
+  <meta property="og:image" content="build/og-image.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    body { user-select: none; }
+    #game-wrapper { position: relative; width: 800px; height: 600px; flex-shrink: 0; }
+    #canvas { display: block; }
+    #input-area {
+      display: none;
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+    }
+    #word-input {
+      width: 100%;
+      padding: 10px 16px;
+      font-size: 22px;
+      font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'NanumGothic', sans-serif;
+      background: rgba(8, 8, 40, 0.88);
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-radius: 10px;
+      color: #fff;
+      outline: none;
+      text-align: center;
+      caret-color: #FFD700;
+      letter-spacing: 3px;
+    }
+    #word-input:focus {
+      border-color: #FFD700;
+      box-shadow: 0 0 14px rgba(255, 215, 0, 0.35);
+    }
+    #word-input::placeholder {
+      color: rgba(255, 255, 255, 0.32);
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="input-area">
+      <input
+        type="text"
+        id="word-input"
+        placeholder="단어 입력 후 Enter"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      >
+    </div>
+  </div>
+  <script src="words.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

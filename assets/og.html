@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>* { margin:0; padding:0; } html,body { width:1200px; height:630px; overflow:hidden; }</style>
+</head>
+<body>
+<canvas id="c" width="1200" height="630" style="display:block"></canvas>
+<script>
+(function () {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const W = 1200, H = 630;
+  const FONT = "'Malgun Gothic','Apple SD Gothic Neo','NanumGothic',sans-serif";
+
+  // Background
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#07071e'); bg.addColorStop(1, '#101030');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  // Stars (seeded-like pattern for reproducibility)
+  const starData = [
+    [54,38,2.2,0.7],[180,22,1.6,0.5],[310,55,2,0.6],[490,18,1.4,0.45],
+    [640,42,2.4,0.65],[820,28,1.8,0.55],[970,50,2,0.5],[1100,35,1.5,0.6],
+    [1160,80,2.2,0.45],[80,120,1.8,0.4],[240,100,1.4,0.5],[440,90,2,0.4],
+    [700,110,1.6,0.55],[900,95,2.2,0.4],[1050,115,1.4,0.5],[1150,140,2,0.45],
+    [30,200,1.5,0.35],[160,180,2,0.45],[380,210,1.6,0.4],[580,190,1.8,0.5],
+    [780,200,1.4,0.4],[1000,185,2,0.45],[1180,210,1.6,0.35],
+    [60,560,1.8,0.4],[200,580,1.4,0.35],[420,570,2,0.4],[650,560,1.6,0.45],
+    [850,575,1.8,0.35],[1050,565,2,0.4],[1170,580,1.4,0.38],
+  ];
+  starData.forEach(([x,y,r,a]) => {
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fill();
+  });
+
+  // Decorative falling characters (background layer)
+  [
+    { c:'가', x: 95,  y: 230, size: 88, a: 0.10 },
+    { c:'나', x:1108, y: 180, size: 76, a: 0.09 },
+    { c:'한', x: 980, y: 490, size: 96, a: 0.12 },
+    { c:'글', x: 118, y: 530, size: 80, a: 0.10 },
+    { c:'타', x:1130, y: 400, size: 70, a: 0.09 },
+    { c:'자', x:  50, y: 380, size: 64, a: 0.08 },
+    { c:'연', x:1060, y: 280, size: 68, a: 0.08 },
+  ].forEach(({ c, x, y, size, a }) => {
+    ctx.font = `bold ${size}px ${FONT}`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = `rgba(255,215,0,${a})`;
+    ctx.fillText(c, x, y);
+  });
+
+  // Left accent line
+  ctx.strokeStyle = 'rgba(255,215,0,0.25)';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(200, 120); ctx.lineTo(200, 510); ctx.stroke();
+  // Right accent line
+  ctx.beginPath(); ctx.moveTo(1000, 120); ctx.lineTo(1000, 510); ctx.stroke();
+
+  // Main title
+  ctx.textAlign = 'center';
+  ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 48;
+  ctx.font = `bold 112px ${FONT}`;
+  ctx.fillStyle = '#FFD700';
+  ctx.fillText('Korean Drop', W / 2, 258);
+  ctx.shadowBlur = 0;
+
+  // Korean subtitle
+  ctx.font = `34px ${FONT}`;
+  ctx.fillStyle = 'rgba(255,255,255,0.72)';
+  ctx.fillText('한글 낙하 타자 연습 게임', W / 2, 322);
+
+  // Description
+  ctx.font = `22px ${FONT}`;
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.fillText('하늘에서 떨어지는 낱말을 타이핑하여 격추하세요!', W / 2, 378);
+
+  // Divider
+  const div = ctx.createLinearGradient(220, 0, 980, 0);
+  div.addColorStop(0,   'rgba(255,215,0,0)');
+  div.addColorStop(0.2, 'rgba(255,215,0,0.4)');
+  div.addColorStop(0.8, 'rgba(255,215,0,0.4)');
+  div.addColorStop(1,   'rgba(255,215,0,0)');
+  ctx.strokeStyle = div; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(220, 420); ctx.lineTo(980, 420); ctx.stroke();
+
+  // Level badges
+  [
+    { label: 'Lv.1–3  초급', x: 370 },
+    { label: 'Lv.4–7  중급', x: 600 },
+    { label: 'Lv.8–10 고급', x: 830 },
+  ].forEach(({ label, x }) => {
+    ctx.beginPath(); ctx.roundRect(x - 88, 440, 176, 42, 10);
+    ctx.fillStyle = 'rgba(255,215,0,0.10)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,215,0,0.38)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.font = `bold 17px ${FONT}`; ctx.textAlign = 'center';
+    ctx.fillStyle = '#FFD700'; ctx.fillText(label, x, 466);
+  });
+
+  // Footer stats
+  ctx.font = `18px ${FONT}`; ctx.fillStyle = 'rgba(255,255,255,0.38)';
+  ctx.fillText('10 레벨  ·  3가지 난이도  ·  150+ 단어  ·  한국어 / English', W / 2, 568);
+})();
+</script>
+</body>
+</html>

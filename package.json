@@ -1,0 +1,35 @@
+{
+  "name": "korean-drop",
+  "version": "1.0.0",
+  "description": "한글 낙하 타자 연습 게임",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "gen-icons": "electron scripts/gen-icons.js"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.korean-drop.app",
+    "productName": "Korean Drop",
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "icon": "build/icon",
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "game.js",
+      "words.js",
+      "assets/**",
+      "build/icon*"
+    ]
+  }
+}
