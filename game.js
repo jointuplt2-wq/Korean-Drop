@@ -358,12 +358,12 @@ function drawMenu() {
   ctx.fillStyle = '#FFD700';
   ctx.shadowColor = '#FFD700';
   ctx.shadowBlur  = 28;
-  ctx.fillText('Korean Drop', 400, 132);
+  ctx.fillText('타자 연습게임', 400, 132);
 
   ctx.shadowBlur  = 0;
   ctx.font        = `20px ${FONT}`;
   ctx.fillStyle   = 'rgba(255,255,255,0.65)';
-  ctx.fillText(t('한글 낙하 타자 연습 게임', 'Korean Typing Drop Game'), 400, 168);
+  ctx.fillText(t('한글/영어 낙하 타자 연습 게임', 'Korean/English Typing Drop Game'), 400, 168);
 
   const items = [
     { id: 'start',    label: '게임 시작',  y: 230 },
