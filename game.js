@@ -368,9 +368,8 @@ function drawMenu() {
   const items = [
     { id: 'start',    label: '게임 시작',  y: 230 },
     { id: 'stats',    label: '통    계',   y: 286 },
-    { id: 'wordlist', label: '단어장 보기', y: 342 },
-    { id: 'settings', label: '설    정',   y: 398 },
-    { id: 'quit',     label: '종    료',   y: 454 },
+    { id: 'settings', label: '설    정',   y: 342 },
+    { id: 'quit',     label: '종    료',   y: 398 },
   ];
   items.forEach(item => {
     const h = menuHover === item.id;
@@ -893,9 +892,8 @@ wordInput.addEventListener('keydown', e => {
 const MENU_ITEMS = [
   { id: 'start',    y: 230 },
   { id: 'stats',    y: 286 },
-  { id: 'wordlist', y: 342 },
-  { id: 'settings', y: 398 },
-  { id: 'quit',     y: 454 },
+  { id: 'settings', y: 342 },
+  { id: 'quit',     y: 398 },
 ];
 const RESULT_BTNS = [
   { id: 'restart', x: 280 },
@@ -976,7 +974,6 @@ canvas.addEventListener('click', e => {
     if (!hit) return;
     if (hit.id === 'start')    showNamePopup();
     if (hit.id === 'stats')    { state.screen = SCREENS.STATS; statsHover = null; }
-    if (hit.id === 'wordlist') state.screen = SCREENS.WORDLIST;
     if (hit.id === 'settings') state.screen = SCREENS.SETTINGS;
     if (hit.id === 'quit') {
       if (window.electronAPI?.quit) window.electronAPI.quit();
