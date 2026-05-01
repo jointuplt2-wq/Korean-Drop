@@ -109,7 +109,7 @@ function playSound(type) {
 // BGM — simple arpeggio loop via Web Audio API
 let bgmTimer = null;
 let bgmStep  = 0;
-const BGM_NOTES = [220, 261.63, 329.63, 392, 440, 392, 329.63, 261.63];
+const BGM_NOTES = [523.25, 659.25, 783.99, 1046.5, 783.99, 659.25, 523.25, 392.00];
 
 function playBGMNote() {
   if (state.settings.volume === 0) return;
@@ -120,21 +120,21 @@ function playBGMNote() {
 
   const osc  = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-  osc.type = 'sine';
+  osc.type = 'triangle';
   osc.frequency.setValueAtTime(freq, now);
   gain.gain.setValueAtTime(v, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.30);
   osc.connect(gain);
   gain.connect(audioCtx.destination);
   osc.start(now);
-  osc.stop(now + 0.4);
+  osc.stop(now + 0.32);
 }
 
 function startBGM() {
   if (bgmTimer || !state.settings.bgm) return;
   bgmStep = 0;
   playBGMNote();
-  bgmTimer = setInterval(playBGMNote, 380);
+  bgmTimer = setInterval(playBGMNote, 320);
 }
 
 function stopBGM() {
