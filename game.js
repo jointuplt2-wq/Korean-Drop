@@ -358,7 +358,7 @@ function drawMenu() {
   ctx.fillStyle = '#FFD700';
   ctx.shadowColor = '#FFD700';
   ctx.shadowBlur  = 28;
-  ctx.fillText('타자 연습게임', 400, 132);
+  ctx.fillText('타자 연습 게임', 400, 132);
 
   ctx.shadowBlur  = 0;
   ctx.font        = `20px ${FONT}`;
